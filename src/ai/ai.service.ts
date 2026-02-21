@@ -114,7 +114,7 @@ export class AIService {
             content:
               userContent.length === 1 && !imageBase64
                 ? (userContent[0] as OpenAI.Chat.ChatCompletionContentPartText)
-                    .text
+                  .text
                 : userContent,
           },
         ],

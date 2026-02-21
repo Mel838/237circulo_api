@@ -19,4 +19,4 @@ import { PromptService } from "./prompt.service";
   providers: [AIService, PromptService],
   exports: [AIService], // export so WasteModule can call classifyWaste() internally
 })
-export class AIModule {}
+export class AIModule { }
