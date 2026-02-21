@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { GoogleUser } from "./interfaces/google-user.interface";
+import { GoogleUser } from "./interfaces/google-user.interface";
 
 @Injectable()
 export class AuthService {

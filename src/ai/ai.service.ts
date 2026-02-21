@@ -4,10 +4,10 @@ import {
   ServiceUnavailableException,
 } from "@nestjs/common";
 import OpenAI from "openai";
-import type { ChatCompletionChunk } from "openai/resources/chat/completions";
-import type { Stream } from "openai/streaming";
-import type { DatabaseService } from "../database/database.service";
-import type { PromptService } from "./prompt.service";
+import { ChatCompletionChunk } from "openai/resources/chat/completions";
+import { Stream } from "openai/streaming";
+import { DatabaseService } from "../database/database.service";
+import { PromptService } from "./prompt.service";
 
 // ── Response shapes ────────────────────────────────────────────────────────────
 

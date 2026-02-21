@@ -1,8 +1,8 @@
 import { Controller, Get, Req, Res, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import type { Request, Response } from "express";
-import type { AuthService } from "./auth.service";
-import type { GoogleUser } from "./interfaces/google-user.interface";
+import { AuthService } from "./auth.service";
+import { GoogleUser } from "./interfaces/google-user.interface";
 
 // Extend Express Request type to include user property
 declare global {
