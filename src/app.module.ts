@@ -4,13 +4,12 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { AuthModule } from "./auth/auth.module";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-
+    ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule,
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
@@ -21,7 +20,7 @@ import { AppService } from "./app.service";
         const database = config.get<string>("DB_NAME");
         if (
           !host ||
-          isNaN(Number(port)) ||
+          Number.isNaN(Number(port)) ||
           !username ||
           !database ||
           !password
