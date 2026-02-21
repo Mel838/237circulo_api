@@ -1,7 +1,7 @@
-import { Module } from "@nestjs/common";
-import { AIModule } from "../ai/ai.module";
-import { WasteController } from "./waste.controller";
-import { WasteService } from "./waste.service";
+import { Module } from '@nestjs/common';
+import { AIModule } from '../ai/ai.module';
+import { WasteController } from './waste.controller';
+import { WasteService } from './waste.service';
 
 /**
  * WasteModule owns the waste_listings table.

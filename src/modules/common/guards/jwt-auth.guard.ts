@@ -2,8 +2,8 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
-} from "@nestjs/common";
-import { AuthGuard } from "@nestjs/passport";
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 /**
  * JWT authentication guard.
@@ -12,7 +12,7 @@ import { AuthGuard } from "@nestjs/passport";
  * Replace with AuthGuard('jwt') once JwtStrategy is implemented.
  */
 @Injectable()
-export class JwtAuthGuard extends AuthGuard("jwt") {
+export class JwtAuthGuard extends AuthGuard('jwt') {
   canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
     const expected = process.env.INTERNAL_API_KEY;
@@ -21,12 +21,12 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     if (!expected) return true;
 
     const provided =
-      (request.headers["x-api-key"] as string | undefined) ??
-      request.headers.authorization?.replace("Bearer ", "") ??
-      "";
+      (request.headers['x-api-key'] as string | undefined) ??
+      request.headers.authorization?.replace('Bearer ', '') ??
+      '';
 
     if (provided !== expected) {
-      throw new UnauthorizedException("Invalid API key");
+      throw new UnauthorizedException('Invalid API key');
     }
 
     return true;

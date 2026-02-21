@@ -1,6 +1,6 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import { ROLES_KEY } from "../decorators/roles.decorator";
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -20,6 +20,6 @@ export class RolesGuard implements CanActivate {
     // Until JWT is set up, allow all requests (user will be undefined)
     if (!user) return true;
 
-    return requiredRoles.includes(user.role ?? "user");
+    return requiredRoles.includes(user.role ?? 'user');
   }
 }

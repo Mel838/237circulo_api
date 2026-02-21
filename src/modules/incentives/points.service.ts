@@ -1,12 +1,12 @@
-import { Injectable } from "@nestjs/common";
-import type { PoolClient } from "pg";
-import { DatabaseService } from "../../database/database.service";
+import { Injectable } from '@nestjs/common';
+import type { PoolClient } from 'pg';
+import { DatabaseService } from '../../database/database.service';
 
 type PointsReason =
-  | "listing_created"
-  | "collection_confirmed"
-  | "bonus"
-  | "redemption";
+  | 'listing_created'
+  | 'collection_confirmed'
+  | 'bonus'
+  | 'redemption';
 
 @Injectable()
 export class PointsService {
@@ -31,14 +31,14 @@ export class PointsService {
 
     // Lock the row
     const balRes = await exec.query(
-      "SELECT points_balance FROM users WHERE id = $1 FOR UPDATE",
+      'SELECT points_balance FROM users WHERE id = $1 FOR UPDATE',
       [userId],
     );
     const newBalance = (balRes.rows[0]?.points_balance ?? 0) + delta;
 
     // Update balance
     await exec.query(
-      "UPDATE users SET points_balance = $1, updated_at = NOW() WHERE id = $2",
+      'UPDATE users SET points_balance = $1, updated_at = NOW() WHERE id = $2',
       [newBalance, userId],
     );
 
@@ -55,7 +55,7 @@ export class PointsService {
   /** Returns current balance + last 20 ledger entries */
   async getHistory(userId: string) {
     const [balRes, histRes] = await Promise.all([
-      this.db.query("SELECT points_balance FROM users WHERE id = $1", [userId]),
+      this.db.query('SELECT points_balance FROM users WHERE id = $1', [userId]),
       this.db.query(
         `SELECT delta, reason, balance_after, created_at
          FROM   points_ledger

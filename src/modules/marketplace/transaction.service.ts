@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { DatabaseService } from "../../database/database.service";
-import { PointsService } from "../incentives/points.service";
-import { NotificationsGateway } from "../notifications/notifications.gateway";
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { DatabaseService } from '../../database/database.service';
+import { PointsService } from '../incentives/points.service';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Injectable()
 export class TransactionService {
@@ -36,7 +36,7 @@ export class TransactionService {
 
       if (!listingRes.rows.length) {
         throw new BadRequestException(
-          "Listing is not available for confirmation.",
+          'Listing is not available for confirmation.',
         );
       }
 
@@ -57,7 +57,7 @@ export class TransactionService {
       await this.points.awardPoints(
         sellerId,
         pointsAwarded,
-        "collection_confirmed",
+        'collection_confirmed',
         txnId,
         client,
       );

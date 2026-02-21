@@ -1,18 +1,18 @@
 // ── Enums (mirror the PostgreSQL enum values exactly) ─────────────────────────
 
-export type ListingStatus = "available" | "matched" | "collected" | "cancelled";
+export type ListingStatus = 'available' | 'matched' | 'collected' | 'cancelled';
 
 export type WasteCategory =
-  | "plastic"
-  | "metal"
-  | "paper"
-  | "glass"
-  | "organic"
-  | "e-waste"
-  | "textile"
-  | "rubber"
-  | "hazardous"
-  | "other";
+  | 'plastic'
+  | 'metal'
+  | 'paper'
+  | 'glass'
+  | 'organic'
+  | 'e-waste'
+  | 'textile'
+  | 'rubber'
+  | 'hazardous'
+  | 'other';
 
 // ── DB row shapes (must extend Record<string,unknown> for DatabaseService) ─────
 

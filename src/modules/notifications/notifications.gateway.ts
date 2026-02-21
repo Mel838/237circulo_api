@@ -1,4 +1,4 @@
-import { Logger } from "@nestjs/common";
+import { Logger } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -7,11 +7,11 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-} from "@nestjs/websockets";
-import { Server, Socket } from "socket.io";
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
-  cors: { origin: process.env.FRONTEND_URL || "http://localhost:3000" },
+  cors: { origin: process.env.FRONTEND_URL || 'http://localhost:3000' },
 })
 export class NotificationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
@@ -32,7 +32,7 @@ export class NotificationsGateway
   // ── Client → Server events ───────────────────────────────────────────────
 
   /** Frontend emits this on page load so the client gets zone-specific updates */
-  @SubscribeMessage("join:zone")
+  @SubscribeMessage('join:zone')
   handleJoinZone(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { zone_id: string },
@@ -42,7 +42,7 @@ export class NotificationsGateway
   }
 
   /** Frontend emits this after login so user gets personal notifications */
-  @SubscribeMessage("join:user")
+  @SubscribeMessage('join:user')
   handleJoinUser(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { user_id: string },
@@ -55,16 +55,16 @@ export class NotificationsGateway
 
   /** Broadcast to everyone in a zone when a new listing is created */
   emitNewListing(zoneId: string, payload: any) {
-    this.server.to(`zone:${zoneId}`).emit("listing:new", payload);
+    this.server.to(`zone:${zoneId}`).emit('listing:new', payload);
   }
 
   /** Notify a specific seller that AI matched buyers to their listing */
   emitMatchFound(userId: string, payload: any) {
-    this.server.to(`user:${userId}`).emit("match:found", payload);
+    this.server.to(`user:${userId}`).emit('match:found', payload);
   }
 
   /** Notify both seller and collector that a pickup was confirmed */
   emitCollectionConfirmed(userId: string, payload: any) {
-    this.server.to(`user:${userId}`).emit("collection:confirmed", payload);
+    this.server.to(`user:${userId}`).emit('collection:confirmed', payload);
   }
 }

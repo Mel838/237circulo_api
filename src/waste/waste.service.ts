@@ -4,17 +4,17 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-} from "@nestjs/common";
-import { PoolClient } from "pg";
-import { AIService, ClassificationResult } from "../ai/ai.service";
-import { DatabaseService } from "../database/database.service";
+} from '@nestjs/common';
+import { PoolClient } from 'pg';
+import { AIService, ClassificationResult } from '../ai/ai.service';
+import { DatabaseService } from '../database/database.service';
 import {
   CreateListingBody,
   ListingFilters,
   ListingRow,
   UpdateListingBody,
   ZoneRow,
-} from "./waste.types";
+} from './waste.types';
 
 // ── Narrow DB result rows ──────────────────────────────────────────────────────
 
@@ -41,7 +41,7 @@ export class WasteService {
    */
   async getZones(): Promise<ZoneRow[]> {
     const res = await this.db.query<ZoneRow>(
-      "SELECT id, name, city, region FROM zones ORDER BY name ASC",
+      'SELECT id, name, city, region FROM zones ORDER BY name ASC',
     );
     return res.rows;
   }
@@ -65,25 +65,25 @@ export class WasteService {
     imageBuffer?: Buffer,
   ): Promise<ListingRow> {
     // ── Validation ──────────────────────────────────────────────────────────
-    const qty = Number.parseFloat(body.quantity_kg ?? "");
+    const qty = Number.parseFloat(body.quantity_kg ?? '');
     if (Number.isNaN(qty) || qty <= 0) {
-      throw new BadRequestException("quantity_kg must be a positive number.");
+      throw new BadRequestException('quantity_kg must be a positive number.');
     }
 
-    const lat = Number.parseFloat(body.latitude ?? "");
-    const lng = Number.parseFloat(body.longitude ?? "");
+    const lat = Number.parseFloat(body.latitude ?? '');
+    const lng = Number.parseFloat(body.longitude ?? '');
     if (Number.isNaN(lat) || Number.isNaN(lng)) {
       throw new BadRequestException(
-        "latitude and longitude must be valid numbers.",
+        'latitude and longitude must be valid numbers.',
       );
     }
 
     if (!body.pickup_window_end) {
-      throw new BadRequestException("pickup_window_end is required.");
+      throw new BadRequestException('pickup_window_end is required.');
     }
 
     if (!body.waste_type?.trim()) {
-      throw new BadRequestException("waste_type is required.");
+      throw new BadRequestException('waste_type is required.');
     }
 
     // ── Optional AI classification ──────────────────────────────────────────
@@ -91,7 +91,7 @@ export class WasteService {
 
     if (imageBuffer) {
       try {
-        const imageBase64 = imageBuffer.toString("base64");
+        const imageBase64 = imageBuffer.toString('base64');
         aiResult = await this.ai.classifyWaste(imageBase64, body.description);
         this.logger.log(
           `AI classified listing for user ${userId}: ${aiResult.category} (${aiResult.confidence})`,
@@ -99,7 +99,7 @@ export class WasteService {
       } catch {
         // AI failure is non-fatal — proceed with client-supplied values
         this.logger.warn(
-          "AI classification failed during listing creation — using client values.",
+          'AI classification failed during listing creation — using client values.',
         );
       }
     }
@@ -170,7 +170,7 @@ export class WasteService {
 
     // status filter (default: available)
     conditions.push(`wl.status = $${idx++}`);
-    params.push(filters.status ?? "available");
+    params.push(filters.status ?? 'available');
 
     if (filters.waste_type?.trim()) {
       conditions.push(`wl.waste_type = $${idx++}`);
@@ -198,7 +198,7 @@ export class WasteService {
       }
     }
 
-    const whereClause = conditions.join(" AND ");
+    const whereClause = conditions.join(' AND ');
 
     // Total count for pagination metadata
     const countRes = await this.db.query<CountRow>(
@@ -207,11 +207,11 @@ export class WasteService {
        WHERE  ${whereClause}`,
       params,
     );
-    const total = Number.parseInt(countRes.rows[0]?.count ?? "0", 10);
+    const total = Number.parseInt(countRes.rows[0]?.count ?? '0', 10);
 
     // Pagination
-    const limit = Math.min(Number.parseInt(filters.limit ?? "20", 10), 100);
-    const page = Math.max(Number.parseInt(filters.page ?? "1", 10), 1);
+    const limit = Math.min(Number.parseInt(filters.limit ?? '20', 10), 100);
+    const page = Math.max(Number.parseInt(filters.page ?? '1', 10), 1);
     const offset = (page - 1) * limit;
 
     params.push(limit, offset);
@@ -278,12 +278,12 @@ export class WasteService {
     const listing = await this.findById(id);
 
     // Ownership check
-    if (listing.user_id !== userId && role !== "admin") {
-      throw new ForbiddenException("You do not own this listing.");
+    if (listing.user_id !== userId && role !== 'admin') {
+      throw new ForbiddenException('You do not own this listing.');
     }
 
     // Terminal status check
-    if (listing.status === "collected" || listing.status === "cancelled") {
+    if (listing.status === 'collected' || listing.status === 'cancelled') {
       throw new BadRequestException(
         `Listing is ${listing.status} and cannot be modified.`,
       );
@@ -292,8 +292,8 @@ export class WasteService {
     // Status transition guard
     if (body.status) {
       const allowed: Record<string, string[]> = {
-        available: ["matched", "cancelled"],
-        matched: ["collected", "cancelled"],
+        available: ['matched', 'cancelled'],
+        matched: ['collected', 'cancelled'],
       };
       if (!allowed[listing.status]?.includes(body.status)) {
         throw new BadRequestException(
@@ -308,12 +308,12 @@ export class WasteService {
     let idx = 1;
 
     const allowed = [
-      "quantity_kg",
-      "pickup_window_start",
-      "pickup_window_end",
-      "final_price",
-      "description",
-      "status",
+      'quantity_kg',
+      'pickup_window_start',
+      'pickup_window_end',
+      'final_price',
+      'description',
+      'status',
     ] as const;
 
     for (const key of allowed) {
@@ -333,7 +333,7 @@ export class WasteService {
 
     const res = await this.db.query<ListingRow>(
       `UPDATE waste_listings
-       SET    ${fields.join(", ")}
+       SET    ${fields.join(', ')}
        WHERE  id = $${idx}
        RETURNING *`,
       values,
@@ -351,16 +351,16 @@ export class WasteService {
   async cancel(id: string, userId: string, role: string): Promise<void> {
     const listing = await this.findById(id);
 
-    if (listing.user_id !== userId && role !== "admin") {
-      throw new ForbiddenException("You do not own this listing.");
+    if (listing.user_id !== userId && role !== 'admin') {
+      throw new ForbiddenException('You do not own this listing.');
     }
 
-    if (listing.status === "collected") {
-      throw new BadRequestException("A completed listing cannot be cancelled.");
+    if (listing.status === 'collected') {
+      throw new BadRequestException('A completed listing cannot be cancelled.');
     }
 
-    if (listing.status === "cancelled") {
-      throw new BadRequestException("Listing is already cancelled.");
+    if (listing.status === 'cancelled') {
+      throw new BadRequestException('Listing is already cancelled.');
     }
 
     await this.db.query(
@@ -427,7 +427,7 @@ export class WasteService {
         zone_id: string | null;
         waste_type: string;
       } & Record<string, unknown>
-    >("SELECT user_id, zone_id, waste_type FROM waste_listings WHERE id = $1", [
+    >('SELECT user_id, zone_id, waste_type FROM waste_listings WHERE id = $1', [
       id,
     ]);
 

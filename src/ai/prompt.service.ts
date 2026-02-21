@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 
 /**
  * Single source of truth for every OpenAI system prompt used in CirculoAI.
@@ -138,8 +138,8 @@ Respond ONLY with a valid JSON object — no markdown, no extra text.
   ): string {
     const priceStr =
       recentPrices.length > 0
-        ? recentPrices.map((p) => `${p} FCFA/kg`).join(", ")
-        : "no recent transactions recorded";
+        ? recentPrices.map((p) => `${p} FCFA/kg`).join(', ')
+        : 'no recent transactions recorded';
 
     return `Waste type: ${wasteType}
 Zone: ${zoneName}, Yaoundé, Cameroon
@@ -155,13 +155,13 @@ Forecast a fair current price range for this waste type in this zone.`;
    *
    * @param language  "fr" | "en" | "pidgin"
    */
-  chatSystem(language: "fr" | "en" | "pidgin"): string {
+  chatSystem(language: 'fr' | 'en' | 'pidgin'): string {
     const langLabel =
-      language === "fr"
-        ? "French"
-        : language === "pidgin"
-          ? "Cameroonian Pidgin English"
-          : "English";
+      language === 'fr'
+        ? 'French'
+        : language === 'pidgin'
+          ? 'Cameroonian Pidgin English'
+          : 'English';
 
     return `You are CirculoAI Assistant, a friendly waste management guide for Cameroon.
 

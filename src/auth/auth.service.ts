@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { GoogleUser } from "./interfaces/google-user.interface";
+import { Injectable } from '@nestjs/common';
+import { GoogleUser } from './interfaces/google-user.interface';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +17,6 @@ export class AuthService {
   generateToken(_user: GoogleUser): string {
     // TODO: Implement JWT token generation
     // You would use @nestjs/jwt to generate a JWT token here
-    return "jwt-token-placeholder";
+    return 'jwt-token-placeholder';
   }
 }

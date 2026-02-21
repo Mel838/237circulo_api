@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { DatabaseService } from "../../database/database.service";
+import { Injectable } from '@nestjs/common';
+import { DatabaseService } from '../../database/database.service';
 
 // IPCC-based CO₂ emission factor per kg recycled (average across waste types)
 const CO2_FACTOR = 1.5;
