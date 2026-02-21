@@ -46,8 +46,10 @@ export class AuthController {
     });
   }
 
-  @Get('status')
-  async getAuthStatus(@Req() req: Request): Promise<{ authenticated: boolean }> {
+  @Get("status")
+  async getAuthStatus(
+    @Req() req: Request,
+  ): Promise<{ authenticated: boolean }> {
     return { authenticated: !!req.user };
   }
 }
