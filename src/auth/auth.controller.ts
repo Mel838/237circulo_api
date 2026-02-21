@@ -37,13 +37,12 @@ export class AuthController {
     // Generate JWT token
     const token = this.authService.generateToken(validatedUser);
 
-    // TODO: Redirect to frontend with token or set HttpOnly cookie
-    // For now, we'll return JSON
-    res.json({
-      message: "Login successful",
-      user: validatedUser,
-      token,
-    });
+    // Get frontend URL from environment
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
+
+    // Redirect to frontend with token as query parameter
+    // In production, you'd use HttpOnly cookies instead
+    res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
   }
 
   @Get("status")
