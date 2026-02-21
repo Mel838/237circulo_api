@@ -1,16 +1,15 @@
-
-import { IsEnum, IsOptional, IsString } from "class-validator";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum Language {
-  English = "English",
-  French = "French",
-  Pigin = "Pigin",
+  English = 'English',
+  French = 'French',
+  Pigin = 'Pigin',
 }
 
-@Entity("users")
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ nullable: true })
@@ -28,11 +27,11 @@ export class User {
   @IsOptional()
   password?: string;
 
-  @Column({ type: "int", default: 0 })
+  @Column({ type: 'int', default: 0 })
   point_balance: number;
 
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: Language,
     default: Language.English,
     nullable: true,
@@ -51,4 +50,3 @@ export class User {
   @IsOptional()
   town?: string;
 }
-

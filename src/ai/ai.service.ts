@@ -2,12 +2,12 @@ import {
   Injectable,
   Logger,
   ServiceUnavailableException,
-} from "@nestjs/common";
-import OpenAI from "openai";
-import { ChatCompletionChunk } from "openai/resources/chat/completions";
-import { Stream } from "openai/streaming";
-import { DatabaseService } from "../database/database.service";
-import { PromptService } from "./prompt.service";
+} from '@nestjs/common';
+import OpenAI from 'openai';
+import { ChatCompletionChunk } from 'openai/resources/chat/completions';
+import { Stream } from 'openai/streaming';
+import { DatabaseService } from '../database/database.service';
+import { PromptService } from './prompt.service';
 
 // ── Response shapes ────────────────────────────────────────────────────────────
 
@@ -22,18 +22,18 @@ export interface ClassificationResult {
   recyclability_score: number;
   price_range_fcfa: PriceRange;
   guidance: string;
-  confidence: "high" | "medium" | "low";
+  confidence: 'high' | 'medium' | 'low';
 }
 
 export interface PriceForecastResult {
   price_range_fcfa: PriceRange;
-  demand_trend: "rising" | "stable" | "falling";
-  confidence: "high" | "medium" | "low";
+  demand_trend: 'rising' | 'stable' | 'falling';
+  confidence: 'high' | 'medium' | 'low';
   rationale: string;
 }
 
 export interface ChatMessage {
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
 }
 
@@ -59,7 +59,7 @@ export class AIService {
     private readonly prompts: PromptService,
   ) {
     this.client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY ?? "",
+      apiKey: process.env.OPENAI_API_KEY ?? '',
     });
   }
 
@@ -82,45 +82,45 @@ export class AIService {
 
     if (imageBase64) {
       userContent.push({
-        type: "image_url",
+        type: 'image_url',
         image_url: {
           url: `data:image/jpeg;base64,${imageBase64}`,
-          detail: "low", // "low" is cheaper and sufficient for waste identification
+          detail: 'low', // "low" is cheaper and sufficient for waste identification
         },
       });
     }
 
     userContent.push({
-      type: "text",
+      type: 'text',
       text: description
         ? `Classify this waste: ${description}`
-        : "Classify the waste shown in the image.",
+        : 'Classify the waste shown in the image.',
     });
 
     try {
       const response = await this.client.chat.completions.create({
-        model: "gpt-4o",
+        model: 'gpt-4o',
         max_tokens: 400,
         temperature: 0.1, // low temperature = consistent, deterministic output
-        response_format: { type: "json_object" },
+        response_format: { type: 'json_object' },
         messages: [
           {
-            role: "system",
+            role: 'system',
             content: this.prompts.classificationSystem(),
           },
           {
-            role: "user",
+            role: 'user',
             // If there is no image, send a plain string (cheaper, no vision)
             content:
               userContent.length === 1 && !imageBase64
                 ? (userContent[0] as OpenAI.Chat.ChatCompletionContentPartText)
-                  .text
+                    .text
                 : userContent,
           },
         ],
       });
 
-      const raw = response.choices[0]?.message?.content ?? "{}";
+      const raw = response.choices[0]?.message?.content ?? '{}';
       return JSON.parse(raw) as ClassificationResult;
     } catch (err) {
       this.logger.error(
@@ -128,7 +128,7 @@ export class AIService {
         (err as Error).stack,
       );
       throw new ServiceUnavailableException(
-        "AI classification is temporarily unavailable. Please select a category manually.",
+        'AI classification is temporarily unavailable. Please select a category manually.',
       );
     }
   }
@@ -170,24 +170,24 @@ export class AIService {
 
     // Get the human-readable zone name for the prompt
     const zoneRes = await this.db.query<ZoneRow>(
-      "SELECT name FROM zones WHERE id = $1",
+      'SELECT name FROM zones WHERE id = $1',
       [zoneId],
     );
     const zoneName = zoneRes.rows[0]?.name ?? zoneId;
 
     try {
       const response = await this.client.chat.completions.create({
-        model: "gpt-4o",
+        model: 'gpt-4o',
         max_tokens: 300,
         temperature: 0.2,
-        response_format: { type: "json_object" },
+        response_format: { type: 'json_object' },
         messages: [
           {
-            role: "system",
+            role: 'system',
             content: this.prompts.priceOracleSystem(),
           },
           {
-            role: "user",
+            role: 'user',
             content: this.prompts.priceOracleUser(
               wasteType,
               zoneName,
@@ -197,7 +197,7 @@ export class AIService {
         ],
       });
 
-      const raw = response.choices[0]?.message?.content ?? "{}";
+      const raw = response.choices[0]?.message?.content ?? '{}';
       return JSON.parse(raw) as PriceForecastResult;
     } catch (err) {
       this.logger.error(
@@ -205,7 +205,7 @@ export class AIService {
         (err as Error).stack,
       );
       throw new ServiceUnavailableException(
-        "Price oracle is temporarily unavailable.",
+        'Price oracle is temporarily unavailable.',
       );
     }
   }
@@ -221,16 +221,16 @@ export class AIService {
    */
   async streamChat(
     messages: ChatMessage[],
-    language: "fr" | "en" | "pidgin",
+    language: 'fr' | 'en' | 'pidgin',
   ): Promise<Stream<ChatCompletionChunk>> {
     return this.client.chat.completions.create({
-      model: "gpt-4o",
+      model: 'gpt-4o',
       max_tokens: 600,
       temperature: 0.7,
       stream: true,
       messages: [
         {
-          role: "system",
+          role: 'system',
           content: this.prompts.chatSystem(language),
         },
         ...messages,

@@ -9,18 +9,18 @@ import {
   Put,
   Req,
   UseGuards,
-} from "@nestjs/common";
-import  { User } from "src/user/entities/user.entity";
-import  { CreateUserDto } from "src/user/dto/create-user.dto";
-import  { UserAuthService } from "./user-auth.service";
-import  { LoginDto } from "./dto/login.dto";
-import { JwtAuthGuard } from "./jwt-auth.guard";
+} from '@nestjs/common';
+import { User } from 'src/user/entities/user.entity';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { UserAuthService } from './user-auth.service';
+import { LoginDto } from './dto/login.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
-@Controller("auth")
+@Controller('auth')
 export class UserAuthController {
   constructor(private readonly authService: UserAuthService) {}
 
-  @Post("register")
+  @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(@Body() createUserDto: CreateUserDto) {
     return {
@@ -29,7 +29,7 @@ export class UserAuthController {
     };
   }
 
-  @Post("login")
+  @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
     return {
@@ -38,7 +38,7 @@ export class UserAuthController {
     };
   }
 
-  @Get("all")
+  @Get('all')
   @HttpCode(HttpStatus.OK)
   async getProfile(@Req() req: any) {
     return {
@@ -48,7 +48,7 @@ export class UserAuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get("profile")
+  @Get('profile')
   @HttpCode(HttpStatus.OK)
   async getMe(@Req() req: any) {
     return {
@@ -58,7 +58,7 @@ export class UserAuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Put("update")
+  @Put('update')
   @HttpCode(HttpStatus.OK)
   async updateUser(@Req() req: any, @Body() updateData: Partial<User>) {
     return {
@@ -68,7 +68,7 @@ export class UserAuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete("delete")
+  @Delete('delete')
   @HttpCode(HttpStatus.OK)
   async deleteUser(@Req() req: any) {
     return {

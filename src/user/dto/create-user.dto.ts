@@ -6,12 +6,12 @@ import {
   Max,
   Min,
   max,
-} from "class-validator";
+} from 'class-validator';
 
 export enum Language {
-  English = "English",
-  French = "French",
-  Pigin = "Pigin",
+  English = 'English',
+  French = 'French',
+  Pigin = 'Pigin',
 }
 export class CreateUserDto {
   @IsString()

@@ -12,11 +12,11 @@ import {
   Req,
   UploadedFile,
   UseInterceptors,
-} from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
-import type { Request } from "express";
-import { WasteService } from "./waste.service";
-import * as wasteTypes from "./waste.types";
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Request } from 'express';
+import { WasteService } from './waste.service';
+import * as wasteTypes from './waste.types';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -29,12 +29,12 @@ function assertApiKey(req: Request): void {
   if (!expected) return; // open in dev when key is not set
 
   const provided =
-    (req.headers["x-api-key"] as string | undefined) ??
-    req.headers.authorization?.replace("Bearer ", "") ??
-    "";
+    (req.headers['x-api-key'] as string | undefined) ??
+    req.headers.authorization?.replace('Bearer ', '') ??
+    '';
 
   if (provided !== expected) {
-    throw new BadRequestException("Unauthorized");
+    throw new BadRequestException('Unauthorized');
   }
 }
 
@@ -44,9 +44,9 @@ function assertApiKey(req: Request): void {
  * so we read directly from req.params.
  */
 function extractId(req: Request): string {
-  const id = (req.params as Record<string, string>)["id"];
+  const id = (req.params as Record<string, string>)['id'];
   if (!id?.trim()) {
-    throw new BadRequestException("id param is required.");
+    throw new BadRequestException('id param is required.');
   }
   return id;
 }
@@ -58,7 +58,7 @@ function extractId(req: Request): string {
  */
 function extractRole(req: Request): string {
   const user = req.user as Record<string, unknown> | undefined;
-  return typeof user?.["role"] === "string" ? user["role"] : "user";
+  return typeof user?.['role'] === 'string' ? user['role'] : 'user';
 }
 
 /**
@@ -70,15 +70,15 @@ function extractUserId(req: Request): string {
   const user = req.user as Record<string, unknown> | undefined;
   // prefer DB uuid (id), fall back to googleId
   const id =
-    typeof user?.["id"] === "string"
-      ? user["id"]
-      : typeof user?.["googleId"] === "string"
-        ? user["googleId"]
+    typeof user?.['id'] === 'string'
+      ? user['id']
+      : typeof user?.['googleId'] === 'string'
+        ? user['googleId']
         : null;
 
   if (!id) {
     throw new BadRequestException(
-      "Unauthorized — no user identity on request.",
+      'Unauthorized — no user identity on request.',
     );
   }
   return id;
@@ -86,7 +86,7 @@ function extractUserId(req: Request): string {
 
 // ── Controller ────────────────────────────────────────────────────────────────
 
-@Controller("waste")
+@Controller('waste')
 export class WasteController {
   private readonly logger = new Logger(WasteController.name);
 
@@ -98,7 +98,7 @@ export class WasteController {
    * Public — no auth required.
    * Returns all seeded zones for use in registration and listing creation forms.
    */
-  @Get("zones")
+  @Get('zones')
   @HttpCode(HttpStatus.OK)
   async getZones(): Promise<wasteTypes.ZoneRow[]> {
     return this.wasteService.getZones();
@@ -136,16 +136,16 @@ export class WasteController {
    *
    * Once auth is complete this will read zone_id from req.user.zone_id.
    */
-  @Get("collector")
+  @Get('collector')
   @HttpCode(HttpStatus.OK)
   async getCollectorQueue(
     @Req() req: Request,
-    @Query("zone_id") zoneId: string,
+    @Query('zone_id') zoneId: string,
   ): Promise<wasteTypes.ListingRow[]> {
     assertApiKey(req);
 
     if (!zoneId?.trim()) {
-      throw new BadRequestException("zone_id query param is required.");
+      throw new BadRequestException('zone_id query param is required.');
     }
 
     return this.wasteService.findForCollector(zoneId);
@@ -156,7 +156,7 @@ export class WasteController {
   /**
    * Public — returns a single listing with seller and zone info.
    */
-  @Get(":id")
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
   async findOne(@Req() req: Request): Promise<wasteTypes.ListingRow> {
     const id = extractId(req);
@@ -191,16 +191,16 @@ export class WasteController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(
-    FileInterceptor("image", {
+    FileInterceptor('image', {
       limits: { fileSize: 5 * 1024 * 1024 },
       fileFilter: (_req, file, cb) => {
-        const allowed = ["image/jpeg", "image/png", "image/webp"];
+        const allowed = ['image/jpeg', 'image/png', 'image/webp'];
         if (allowed.includes(file.mimetype)) {
           cb(null, true);
         } else {
           cb(
             new BadRequestException(
-              "Only JPEG, PNG, and WebP images are accepted.",
+              'Only JPEG, PNG, and WebP images are accepted.',
             ),
             false,
           );
@@ -235,7 +235,7 @@ export class WasteController {
    * Only the listing owner or an admin may update.
    * Terminal statuses (collected, cancelled) block all edits.
    */
-  @Patch(":id")
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async update(
     @Req() req: Request & { body: wasteTypes.UpdateListingBody },
@@ -259,7 +259,7 @@ export class WasteController {
    *
    * Returns 204 No Content on success.
    */
-  @Delete(":id")
+  @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async cancel(@Req() req: Request): Promise<void> {
     assertApiKey(req);

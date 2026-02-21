@@ -1,7 +1,7 @@
-import { Logger, ValidationPipe } from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
-import helmet from "helmet";
-import { AppModule } from "./app.module";
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,7 +10,7 @@ async function bootstrap() {
   app.use(helmet());
 
   // Global route prefix
-  app.setGlobalPrefix("api");
+  app.setGlobalPrefix('api');
 
   // Auto-validate all incoming DTOs
   app.useGlobalPipes(
@@ -23,7 +23,7 @@ async function bootstrap() {
 
   // CORS — allow Next.js frontend
   app.enableCors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
   });
 

@@ -3,9 +3,9 @@ import {
   Logger,
   Module,
   type OnApplicationShutdown,
-} from "@nestjs/common";
-import { Pool } from "pg";
-import { DatabaseService } from "./database.service";
+} from '@nestjs/common';
+import { Pool } from 'pg';
+import { DatabaseService } from './database.service';
 
 /**
  * @Global() — import once in AppModule and every module can use
@@ -26,7 +26,7 @@ import { DatabaseService } from "./database.service";
   providers: [
     // Step 1 — create the raw Pool
     {
-      provide: "PG_POOL",
+      provide: 'PG_POOL',
       useFactory: (): Pool => {
         const pool = new Pool({
           connectionString: process.env.DATABASE_URL,
@@ -35,11 +35,11 @@ import { DatabaseService } from "./database.service";
           connectionTimeoutMillis: 2_000,
         });
 
-        pool.on("connect", () =>
-          Logger.log("pg pool — new client connected", "DatabaseModule"),
+        pool.on('connect', () =>
+          Logger.log('pg pool — new client connected', 'DatabaseModule'),
         );
-        pool.on("error", (err: Error) =>
-          Logger.error(`pg pool error: ${err.message}`, "DatabaseModule"),
+        pool.on('error', (err: Error) =>
+          Logger.error(`pg pool error: ${err.message}`, 'DatabaseModule'),
         );
 
         return pool;
@@ -54,10 +54,10 @@ import { DatabaseService } from "./database.service";
         service.pool = pool; // property injection — no @Inject needed
         return service;
       },
-      inject: ["PG_POOL"],
+      inject: ['PG_POOL'],
     },
   ],
-  exports: ["PG_POOL", DatabaseService],
+  exports: ['PG_POOL', DatabaseService],
 })
 export class DatabaseModule implements OnApplicationShutdown {
   constructor(private readonly db: DatabaseService) {}
@@ -65,6 +65,6 @@ export class DatabaseModule implements OnApplicationShutdown {
   /** Gracefully drain the pool when the app shuts down (Ctrl+C / SIGTERM). */
   async onApplicationShutdown() {
     await this.db.pool.end();
-    Logger.log("pg pool closed", "DatabaseModule");
+    Logger.log('pg pool closed', 'DatabaseModule');
   }
 }

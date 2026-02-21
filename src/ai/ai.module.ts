@@ -1,7 +1,7 @@
-import { Module } from "@nestjs/common";
-import { AIController } from "./ai.controller";
-import { AIService } from "./ai.service";
-import { PromptService } from "./prompt.service";
+import { Module } from '@nestjs/common';
+import { AIController } from './ai.controller';
+import { AIService } from './ai.service';
+import { PromptService } from './prompt.service';
 
 /**
  * AIModule is self-contained.
@@ -19,4 +19,4 @@ import { PromptService } from "./prompt.service";
   providers: [AIService, PromptService],
   exports: [AIService], // export so WasteModule can call classifyWaste() internally
 })
-export class AIModule { }
+export class AIModule {}

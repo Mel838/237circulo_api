@@ -18,18 +18,12 @@ import { JwtStrategy } from './jwt.strategy';
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'default-secret',
       signOptions: {
-        expiresIn: parseInt(process.env.JWT_EXPIRATION || '7d'), 
+        expiresIn: parseInt(process.env.JWT_EXPIRATION || '7d'),
       },
     }),
   ],
   controllers: [UserAuthController],
-  providers: [
-    UserAuthService,
-    JwtStrategy, 
-  ],
-  exports: [
-    PassportModule,
-    JwtModule, 
-  ],
+  providers: [UserAuthService, JwtStrategy],
+  exports: [PassportModule, JwtModule],
 })
 export class UserAuthModule {}

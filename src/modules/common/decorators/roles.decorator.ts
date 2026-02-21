@@ -1,6 +1,6 @@
-import { SetMetadata } from "@nestjs/common";
+import { SetMetadata } from '@nestjs/common';
 
-export const ROLES_KEY = "roles";
+export const ROLES_KEY = 'roles';
 
 /**
  * Attach allowed roles to a route handler or controller.
