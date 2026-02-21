@@ -7,6 +7,9 @@ import { AppService } from "./app.service";
 import { AuthModule } from "./auth/auth.module";
 import { DatabaseModule } from "./database/database.module";
 import { WasteModule } from "./waste/waste.module";
+import { MarketplaceModule } from "./modules/marketplace/marketplace.module";
+import { IncentivesModule } from "./modules/incentives/incentives.module";
+import { AnalyticsModule } from "./modules/analytics/analytics.module";
 
 @Module({
   imports: [
@@ -15,6 +18,7 @@ import { WasteModule } from "./waste/waste.module";
     AuthModule,
     AIModule,
     WasteModule,
+    AnalyticsModule,    MarketplaceModule,    IncentivesModule, 
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {

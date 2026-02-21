@@ -76,7 +76,7 @@ function toLanguage(raw: unknown): "fr" | "en" | "pidgin" {
 export class AIController {
   private readonly logger = new Logger(AIController.name);
 
-  constructor(private readonly aiService: AIService) {}
+  constructor(private readonly aiService: AIService) { }
 
   // ── GET /ai/health ─────────────────────────────────────────────────────────
 
