@@ -6,15 +6,18 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { AuthModule } from "./auth/auth.module";
 import { DatabaseModule } from "./database/database.module";
+import { UserAuthModule } from "./user/user-auth/user-auth.module";
 import { WasteModule } from "./waste/waste.module";
 import { MarketplaceModule } from "./modules/marketplace/marketplace.module";
 import { IncentivesModule } from "./modules/incentives/incentives.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
+    UserAuthModule,
     AuthModule,
     AIModule,
     WasteModule,
@@ -48,7 +51,7 @@ import { AnalyticsModule } from "./modules/analytics/analytics.module";
           synchronize: config.get("NODE_ENV") !== "production",
         };
       },
-    }),
+    }), UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
