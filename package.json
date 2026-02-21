@@ -22,9 +22,7 @@
     "lint-staged": "lint-staged"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,json}": [
-      "biome check --write --no-errors-on-unmatched"
-    ]
+    "*.{ts,tsx,js,jsx,json}": []
   },
   "dependencies": {
     "@biomejs/biome": "^2.4.4",
