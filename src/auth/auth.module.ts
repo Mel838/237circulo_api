@@ -7,7 +7,7 @@ import { GoogleStrategy } from "./strategies/google.strategy";
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule,
     PassportModule.register({ defaultStrategy: "google" }),
   ],
   controllers: [AuthController],
