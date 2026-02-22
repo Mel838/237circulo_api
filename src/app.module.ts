@@ -7,11 +7,11 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { UserAuthModule } from './user/user-auth/user-auth.module';
-import { WasteModule } from './waste/waste.module';
 import { MarketplaceModule } from './modules/marketplace/marketplace.module';
 import { IncentivesModule } from './modules/incentives/incentives.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { UserModule } from './user/user.module';
+import { WasteListingModule } from './waste-listing/waste-listing.module';
 
 @Module({
   imports: [
@@ -20,7 +20,6 @@ import { UserModule } from './user/user.module';
     UserAuthModule,
     AuthModule,
     AIModule,
-    WasteModule,
     AnalyticsModule,
     MarketplaceModule,
     IncentivesModule,
@@ -55,6 +54,7 @@ import { UserModule } from './user/user.module';
       },
     }),
     UserModule,
+    WasteListingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
