@@ -1,0 +1,78 @@
+{
+  "info": {
+    "name": "CirculoAI - AI endpoints",
+    "_postman_id": "cf0f6f7a-0000-4000-8000-000000000000",
+    "description": "Collection with requests to test /ai/classify, /ai/price, /ai/chat",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "apiKey", "value": "test-internal-key" }
+  ],
+  "item": [
+    {
+      "name": "Classify (text)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-api-key", "value": "{{apiKey}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Small clear PET bottles and palm oil sachets mixed together in a sack\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/ai/classify", "host": ["{{baseUrl}}"], "path": ["ai","classify"] }
+      }
+    },
+    {
+      "name": "Classify (multipart) — image + description",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-api-key", "value": "{{apiKey}}" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "image", "type": "file", "src": "sample.jpg" },
+            { "key": "description", "type": "text", "value": "Outdoor market waste, mostly plastic sachets" }
+          ]
+        },
+        "url": { "raw": "{{baseUrl}}/ai/classify", "host": ["{{baseUrl}}"], "path": ["ai","classify"] }
+      },
+      "description": "Replace the file src with a local file path in Postman (e.g. choose a file from your machine)."
+    },
+    {
+      "name": "Price (forecast)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-api-key", "value": "{{apiKey}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"waste_type\": \"plastic\",\n  \"zone_id\": \"11111111-1111-1111-1111-111111111111\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/ai/price", "host": ["{{baseUrl}}"], "path": ["ai","price"] }
+      }
+    },
+    {
+      "name": "Chat (streaming SSE)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-api-key", "value": "{{apiKey}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"messages\": [\n    { \"role\": \"user\", \"content\": \"How should I prepare palm oil sachets for collection?\" }\n  ],\n  \"language\": \"en\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/ai/chat", "host": ["{{baseUrl}}"], "path": ["ai","chat"] }
+      },
+      "description": "This endpoint streams SSE. Postman may show the stream; browsers or EventSource clients will receive tokens until [DONE]."
+    }
+  ]
+}
