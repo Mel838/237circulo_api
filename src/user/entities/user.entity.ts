@@ -1,5 +1,6 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { WasteListing } from '../../waste-listing/entities/waste-listing.entity';
 
 export enum Language {
   English = 'English',
@@ -49,4 +50,7 @@ export class User {
   @IsString()
   @IsOptional()
   town?: string;
+
+  @OneToMany(() => WasteListing, (wasteListing) => wasteListing.user)
+  wasteListings: WasteListing[];
 }
