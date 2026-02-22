@@ -37,7 +37,7 @@ export interface ChatMessage {
   content: string;
 }
 
-// ── DB row shapes (must satisfy Record<string, unknown>) ──────────────────────
+// ── DB row shapes ──────────────────────────────────────────────────────────────
 
 interface PriceRow extends Record<string, unknown> {
   price_per_kg: string;
@@ -45,6 +45,71 @@ interface PriceRow extends Record<string, unknown> {
 
 interface ZoneRow extends Record<string, unknown> {
   name: string;
+}
+
+// ── Fallback responses (returned when AI is unavailable) ──────────────────────
+
+const CLASSIFICATION_FALLBACK: ClassificationResult = {
+  category: 'other',
+  sub_category: 'unidentified',
+  recyclability_score: 0,
+  price_range_fcfa: { min: 0, max: 0 },
+  guidance: 'AI classification unavailable. Please select a category manually.',
+  confidence: 'low',
+};
+
+const PRICE_FALLBACK: PriceForecastResult = {
+  price_range_fcfa: { min: 0, max: 0 },
+  demand_trend: 'stable',
+  confidence: 'low',
+  rationale: 'Price oracle temporarily unavailable. Use recent market rates.',
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Safely parse a JSON string returned by GPT.
+ * Strips markdown code fences if present, then parses.
+ * Returns null on failure instead of throwing.
+ */
+function safeJsonParse<T>(raw: string): T | null {
+  try {
+    // Strip ```json ... ``` or ``` ... ``` fences GPT occasionally adds
+    const cleaned = raw
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
+      .trim();
+    return JSON.parse(cleaned) as T;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Validate that a ClassificationResult has the minimum required fields.
+ */
+function isValidClassification(obj: unknown): obj is ClassificationResult {
+  if (!obj || typeof obj !== 'object') return false;
+  const c = obj as Record<string, unknown>;
+  return (
+    typeof c['category'] === 'string' &&
+    typeof c['recyclability_score'] === 'number' &&
+    typeof c['price_range_fcfa'] === 'object' &&
+    c['price_range_fcfa'] !== null
+  );
+}
+
+/**
+ * Validate that a PriceForecastResult has the minimum required fields.
+ */
+function isValidForecast(obj: unknown): obj is PriceForecastResult {
+  if (!obj || typeof obj !== 'object') return false;
+  const f = obj as Record<string, unknown>;
+  return (
+    typeof f['price_range_fcfa'] === 'object' &&
+    f['price_range_fcfa'] !== null &&
+    typeof f['demand_trend'] === 'string'
+  );
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -58,26 +123,27 @@ export class AIService {
     private readonly db: DatabaseService,
     private readonly prompts: PromptService,
   ) {
-    this.client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY ?? '',
-    });
+    const apiKey = process.env.OPENAI_API_KEY ?? '';
+
+    if (!apiKey || apiKey === 'sk-proj-your-new-key-here') {
+      this.logger.warn(
+        'OPENAI_API_KEY is not set or is a placeholder. AI features will return fallback responses.',
+      );
+    }
+
+    this.client = new OpenAI({ apiKey });
   }
 
   // ── 1. Waste Classification ──────────────────────────────────────────────
 
   /**
-   * Classify waste from a base64-encoded JPEG image, a text description,
-   * or both. At least one must be provided (validated in the controller).
-   *
-   * Uses GPT-4o with response_format: json_object so the response is
-   * always valid JSON — no markdown fence stripping needed.
+   * Classify waste from a base64-encoded image, a text description, or both.
+   * Falls back gracefully when the API key is missing or the call fails.
    */
   async classifyWaste(
     imageBase64?: string,
     description?: string,
   ): Promise<ClassificationResult> {
-    // Build the user content array
-    // Text-only path avoids the vision model cost when no image is provided
     const userContent: OpenAI.Chat.ChatCompletionContentPart[] = [];
 
     if (imageBase64) {
@@ -85,7 +151,7 @@ export class AIService {
         type: 'image_url',
         image_url: {
           url: `data:image/jpeg;base64,${imageBase64}`,
-          detail: 'low', // "low" is cheaper and sufficient for waste identification
+          detail: 'low',
         },
       });
     }
@@ -101,47 +167,47 @@ export class AIService {
       const response = await this.client.chat.completions.create({
         model: 'gpt-4o',
         max_tokens: 400,
-        temperature: 0.1, // low temperature = consistent, deterministic output
+        temperature: 0.1,
         response_format: { type: 'json_object' },
         messages: [
-          {
-            role: 'system',
-            content: this.prompts.classificationSystem(),
-          },
+          { role: 'system', content: this.prompts.classificationSystem() },
           {
             role: 'user',
-            // If there is no image, send a plain string (cheaper, no vision)
             content:
               userContent.length === 1 && !imageBase64
-                ? (userContent[0] as OpenAI.Chat.ChatCompletionContentPartText)
-                    .text
+                ? (userContent[0] as OpenAI.Chat.ChatCompletionContentPartText).text
                 : userContent,
           },
         ],
       });
 
       const raw = response.choices[0]?.message?.content ?? '{}';
-      return JSON.parse(raw) as ClassificationResult;
+      const parsed = safeJsonParse<ClassificationResult>(raw);
+
+      if (!parsed || !isValidClassification(parsed)) {
+        this.logger.warn(
+          `classifyWaste — GPT returned unparseable JSON, using fallback. Raw: ${raw.slice(0, 200)}`,
+        );
+        return CLASSIFICATION_FALLBACK;
+      }
+
+      return parsed;
     } catch (err) {
       this.logger.error(
         `classifyWaste failed: ${(err as Error).message}`,
         (err as Error).stack,
       );
-      throw new ServiceUnavailableException(
-        'AI classification is temporarily unavailable. Please select a category manually.',
-      );
+
+      // Return fallback instead of throwing so listing creation still works
+      return CLASSIFICATION_FALLBACK;
     }
   }
 
   // ── 2. Price Oracle ──────────────────────────────────────────────────────
 
   /**
-   * Fetch the last 30 days of FCFA/kg prices for a given waste type
-   * in a given zone from the transactions table, then ask GPT to
-   * forecast a fair current price range.
-   *
-   * @param wasteType  e.g. "plastic"
-   * @param zoneId     UUID of the zone
+   * Forecast a fair FCFA/kg price for a waste type in a given zone.
+   * Pulls the last 30 days of transaction prices from DB to ground the estimate.
    */
   async forecastPrice(
     wasteType: string,
@@ -164,11 +230,11 @@ export class AIService {
       [wasteType, zoneId],
     );
 
-    const recentPrices = priceRes.rows.map((r) =>
-      Number.parseFloat(r.price_per_kg),
-    );
+    const recentPrices = priceRes.rows
+      .map((r) => Number.parseFloat(r.price_per_kg))
+      .filter((n) => !Number.isNaN(n));
 
-    // Get the human-readable zone name for the prompt
+    // Get zone name for the prompt
     const zoneRes = await this.db.query<ZoneRow>(
       'SELECT name FROM zones WHERE id = $1',
       [zoneId],
@@ -182,31 +248,31 @@ export class AIService {
         temperature: 0.2,
         response_format: { type: 'json_object' },
         messages: [
-          {
-            role: 'system',
-            content: this.prompts.priceOracleSystem(),
-          },
+          { role: 'system', content: this.prompts.priceOracleSystem() },
           {
             role: 'user',
-            content: this.prompts.priceOracleUser(
-              wasteType,
-              zoneName,
-              recentPrices,
-            ),
+            content: this.prompts.priceOracleUser(wasteType, zoneName, recentPrices),
           },
         ],
       });
 
       const raw = response.choices[0]?.message?.content ?? '{}';
-      return JSON.parse(raw) as PriceForecastResult;
+      const parsed = safeJsonParse<PriceForecastResult>(raw);
+
+      if (!parsed || !isValidForecast(parsed)) {
+        this.logger.warn(
+          `forecastPrice — GPT returned unparseable JSON, using fallback. Raw: ${raw.slice(0, 200)}`,
+        );
+        return PRICE_FALLBACK;
+      }
+
+      return parsed;
     } catch (err) {
       this.logger.error(
         `forecastPrice failed: ${(err as Error).message}`,
         (err as Error).stack,
       );
-      throw new ServiceUnavailableException(
-        'Price oracle is temporarily unavailable.',
-      );
+      return PRICE_FALLBACK;
     }
   }
 
@@ -215,26 +281,31 @@ export class AIService {
   /**
    * Returns an OpenAI streaming iterator.
    * The controller pipes this directly to the HTTP response as SSE.
-   *
-   * @param messages  Full conversation history (role + content pairs)
-   * @param language  User's preferred language from their profile
+   * Throws ServiceUnavailableException on failure (streaming cannot fallback silently).
    */
   async streamChat(
     messages: ChatMessage[],
     language: 'fr' | 'en' | 'pidgin',
   ): Promise<Stream<ChatCompletionChunk>> {
-    return this.client.chat.completions.create({
-      model: 'gpt-4o',
-      max_tokens: 600,
-      temperature: 0.7,
-      stream: true,
-      messages: [
-        {
-          role: 'system',
-          content: this.prompts.chatSystem(language),
-        },
-        ...messages,
-      ],
-    });
+    try {
+      return await this.client.chat.completions.create({
+        model: 'gpt-4o',
+        max_tokens: 600,
+        temperature: 0.7,
+        stream: true,
+        messages: [
+          { role: 'system', content: this.prompts.chatSystem(language) },
+          ...messages,
+        ],
+      });
+    } catch (err) {
+      this.logger.error(
+        `streamChat failed: ${(err as Error).message}`,
+        (err as Error).stack,
+      );
+      throw new ServiceUnavailableException(
+        'AI chat is temporarily unavailable. Please try again later.',
+      );
+    }
   }
 }
